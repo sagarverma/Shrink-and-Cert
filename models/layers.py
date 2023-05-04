@@ -57,7 +57,8 @@ class GetSubnetUnstructured(autograd.Function):
 
         flat_out = out.flatten()
         flat_out[idx[:j]] = 0
-        flat_out[idx[j:]] = 1
+        # flat_out[idx[j:]] = 1
+        flat_out[idx[j:]] = torch.clamp(flat_out[idx[j:]], -1, 1)
 
         return out
 
