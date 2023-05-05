@@ -174,6 +174,7 @@ class ResNet(nn.Module):
         return nn.Sequential(*layers)
 
     def _forward_impl(self, x):
+        print (x.shape, self.unstructured_pruning)
         if self.unstructured_pruning:
             score_list = []
             for (name, vec) in self.named_modules():

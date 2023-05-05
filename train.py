@@ -74,7 +74,6 @@ def main():
     # ConvLayer and LinearLayer are classes, not instances.
     ConvLayer, LinearLayer = get_layers(args.layer_type)
     unstructured = True if args.layer_type == "unstructured" else False
-    print (unstructured)
     model = models.__dict__[args.arch](
         ConvLayer, LinearLayer, num_classes=args.num_classes,
         k=args.k, unstructured=unstructured
