@@ -182,7 +182,9 @@ class ResNet(nn.Module):
                     if attr is not None:
                         score_list.append(attr.view(-1))
             scores = torch.cat(score_list)
+            print (scores.min(), scores.max())
             adj = GetSubnetUnstructured.apply(scores.abs(), self.k)
+            print (adj.min(), adj.max())
 
             pointer = 0
             for (name, vec) in self.named_modules():
