@@ -35,17 +35,17 @@ def save_checkpoint(
             os.path.join(result_dir, "model_best.pth.tar"),
         )
 
-    if save_dense:
-        state["state_dict"] = subnet_to_dense(state["state_dict"], args.k)
-        torch.save(
-            subnet_to_dense(state, args.k),
-            os.path.join(result_dir, "checkpoint_dense.pth.tar"),
-        )
-        if is_best:
-            shutil.copyfile(
-                os.path.join(result_dir, "checkpoint_dense.pth.tar"),
-                os.path.join(result_dir, "model_best_dense.pth.tar"),
-            )
+    # if save_dense:
+    #     state["state_dict"] = subnet_to_dense(state["state_dict"], args.k)
+    #     torch.save(
+    #         subnet_to_dense(state, args.k),
+    #         os.path.join(result_dir, "checkpoint_dense.pth.tar"),
+    #     )
+    #     if is_best:
+    #         shutil.copyfile(
+    #             os.path.join(result_dir, "checkpoint_dense.pth.tar"),
+    #             os.path.join(result_dir, "model_best_dense.pth.tar"),
+    #         )
 
 
 def create_subdirs(sub_dir):
