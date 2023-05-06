@@ -52,12 +52,13 @@ class GetSubnetUnstructured(autograd.Function):
     @staticmethod
     def forward(ctx, scores, k):
         out = scores.clone()
-        _, idx = scores.flatten().sort()
-        j = int((1 - k) * scores.numel())
+        # _, idx = scores.flatten().sort()
+        # j = int((1 - k) * scores.numel())
 
-        flat_out = out.flatten()
-        flat_out[idx[:j]] = 0
-        flat_out[idx[j:]] = 1
+        # flat_out = out.flatten()
+        # flat_out[idx[:j]] = 0
+        # flat_out[idx[j:]] = 1
+        out = torch.clamp(out, 0, 0.99)
 
         return out
 
