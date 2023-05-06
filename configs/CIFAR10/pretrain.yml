@@ -26,8 +26,8 @@ val_method: base
 
 # ->->->->-> Dataset <-<-<-<-<-
 dataset: CIFAR10
-batch_size: 512
-test_batch_size: 512
+batch_size: 128
+test_batch_size: 128
 data_dir: "./data"
 
 

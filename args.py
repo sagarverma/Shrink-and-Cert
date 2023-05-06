@@ -23,7 +23,7 @@ def parse_args():
     parser.add_argument(
         "--exp-mode",
         type=str,
-        choices=("pretrain", "prune", "finetune", "test"),
+        choices=("pretrain", "prune", "finetune"),
         help="Train networks following one of these methods.",
     )
 
