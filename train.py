@@ -7,6 +7,7 @@ import os
 import time
 from pathlib import Path
 
+import numpy as np
 import torch
 import torch.nn as nn
 
@@ -29,6 +30,23 @@ from utils.model import (
 )
 from utils.schedules import get_lr_policy, get_optimizer
 
+
+class EarlyStopper:
+    def __init__(self, patience=1, min_delta=0):
+        self.patience = patience
+        self.min_delta = min_delta
+        self.counter = 0
+        self.max_validation_prec = -1
+
+    def early_stop(self, validation_prec):
+        if validation_prec > self.max_validation_prec:
+            self.max_validation_prec = validation_prec
+            self.counter = 0
+        elif validation_prec < (self.max_validation_prec + self.min_delta):
+            self.counter += 1
+            if self.counter >= self.patience:
+                return True
+        return False
 
 def main():
     args = parse_args()
@@ -129,6 +147,7 @@ def main():
             # With batch-norm its not really necessary.
             scale_rand_init(model, args.k)
 
+    early_stopper = EarlyStopper(patience=3, min_delta=0.1)
     best_prec1 = 0
     start_epoch = 0
     assert not (args.source_net and args.resume), (
@@ -217,6 +236,9 @@ def main():
         logger.info(
             f"Epoch {epoch}, val-method {args.val_method}, validation accuracy {prec1}, best_prec {best_prec1}"
         )
+
+        if early_stopper.early_stop(best_prec1):             
+            break
 
     save_checkpoint(
         {
