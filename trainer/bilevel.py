@@ -81,8 +81,11 @@ def train(
 
             def grad2vec(parameters):
                 grad_vec = []
-                for param in parameters:
-                    grad_vec.append(param.grad.view(-1).detach())
+                for i, param in enumerate(parameters):
+                    try:
+                        grad_vec.append(param.grad.view(-1).detach())
+                    except:
+                        grad_vec.append(torch.ones(param.view(-1).shape).type_as(param))
                 return torch.cat(grad_vec)
 
             param_grad_vec = grad2vec(model.parameters())
@@ -104,11 +107,14 @@ def train(
 
                 pointer = 0
                 for param in parameters:
-                    num_param = param.numel()
+                    try:
+                        num_param = param.numel()
 
-                    param.grad.copy_(param.grad + vec[pointer:pointer + num_param].view_as(param).data)
+                        param.grad.copy_(param.grad + vec[pointer:pointer + num_param].view_as(param).data)
 
-                    pointer += num_param
+                        pointer += num_param
+                    except:
+                        pass
 
             append_grad_to_vec(implicit_gradient, model.parameters())
             mask_optimizer.step()
