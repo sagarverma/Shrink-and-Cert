@@ -27,10 +27,11 @@ def setup_seed(seed: int):
 def save_checkpoint(
         state, is_best, args, result_dir, filename="checkpoint.pth.tar", save_dense=False
 ):
-    torch.save(state, os.path.join(result_dir, filename))
+    torch.save(state, os.path.join(result_dir, 
+                                   filename.replace("check", f"{state['epoch']}-check")))
     if is_best:
         shutil.copyfile(
-            os.path.join(result_dir, filename),
+            os.path.join(result_dir, filename.replace("check", f"{state['epoch']}-check")),
             os.path.join(result_dir, "model_best.pth.tar"),
         )
 
