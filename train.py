@@ -147,7 +147,7 @@ def main():
             # With batch-norm its not really necessary.
             scale_rand_init(model, args.k)
 
-    early_stopper = EarlyStopper(patience=3, min_delta=0.1)
+    early_stopper = EarlyStopper(patience=10, min_delta=0.01)
     best_prec1 = 0
     start_epoch = 0
     assert not (args.source_net and args.resume), (
