@@ -227,9 +227,9 @@ def main():
             save_dense=args.save_dense,
         )
 
-        clone_results_to_latest_subdir(
-            result_sub_dir, os.path.join(result_main_dir, "latest_exp")
-        )
+        # clone_results_to_latest_subdir(
+        #     result_sub_dir, os.path.join(result_main_dir, "latest_exp")
+        # )
 
         logger.info("This epoch duration :{}".format(time.time() - start))
 
@@ -254,9 +254,9 @@ def main():
         save_dense=args.save_dense,
     )
 
-    clone_results_to_latest_subdir(
-        result_sub_dir, os.path.join(result_main_dir, "latest_exp")
-    )
+    # clone_results_to_latest_subdir(
+    #     result_sub_dir, os.path.join(result_main_dir, "latest_exp")
+    # )
 
     current_model_pruned_fraction(
         model, os.path.join(result_sub_dir, "checkpoint"), verbose=True
