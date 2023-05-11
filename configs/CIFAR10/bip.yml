@@ -42,3 +42,12 @@ print_freq: 100
 lr2: 0.0001
 mask_lr_schedule: step
 mask_lr: 0.1
+
+# ->->->->-> Adv <-<-<-<-<-
+epsilon: 0.031
+num_steps: 10
+step_size: 0.0078
+clip_min: 0
+clip_max: 1
+distance: "l_inf"
+beta: 6.0

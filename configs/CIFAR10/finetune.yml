@@ -32,6 +32,14 @@ test_batch_size: 128
 data_dir: "./data"
 data_fraction: 1.0
 
+# ->->->->-> Adv <-<-<-<-<-
+epsilon: 0.031
+num_steps: 10
+step_size: 0.0078
+clip_min: 0
+clip_max: 1
+distance: "l_inf"
+beta: 6.0
 
 # ->->->->-> Misc <-<-<-<-<-
 seed: 1234

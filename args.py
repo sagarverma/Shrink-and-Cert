@@ -176,10 +176,18 @@ def parse_args():
         "--val-method",
         type=str,
         default="base",
-        choices=["base"],
+        choices=["base", "smooth"],
         help="base: evaluation on unmodified inputs",
     )
 
+    # Randomized smoothing
+    parser.add_argument(
+        "--noise-std",
+        type=float,
+        default=0.25,
+        help="Std of normal distribution used to generate noise",
+    )
+    
     # Restart
     parser.add_argument(
         "--resume",

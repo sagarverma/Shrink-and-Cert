@@ -1,0 +1,50 @@
+{"cifar10": {"resnet18": {"pretrain": {"path": "3--k-1.0000_trainer-base_epochs-200_arch-resnet18", 
+                                       "accuracy": 82.86000061035156},
+                         "Unstructured_BiC_FullClamp_0to0.99": {"path": "4--k-0.0100_trainer-bilevel_epochs-100_arch-resnet18", 
+                                          "accuracy": 89.79000091552734}
+                         },
+            "resnet34": {"pretrain": {"path": "0--k-1.0000_trainer-base_epochs-200_arch-resnet34", 
+                                       "accuracy": 82.72999572753906},
+                         "Unstructured_BiC_FullClamp_0to0.99": {"path": "0--k-0.0100_trainer-bilevel_epochs-100_arch-resnet34", 
+                                          "accuracy": 90.48999786376953}
+                         },
+            "resnet50": {"pretrain": {"path": "3--k-1.0000_trainer-base_epochs-200_arch-resnet50", 
+                                        "accuracy": 86.23999786376953},
+                         "Unstructured_BiC_FullClamp_0to0.99": {"path": "1--k-0.0100_trainer-bilevel_epochs-100_arch-resnet50", 
+                                        "accuracy": 91.69999694824219}
+                        }    
+            },
+"cifar100": {"resnet18": {"pretrain": {"path": "", 
+                                    "accuracy": 0},
+                        "Unstructured_BiC_FullClamp_0to0.99": {"path": "", 
+                                    "accuracy": 0}
+                        },
+                        "resnet34": {"pretrain": {"path": "", 
+                                    "accuracy": 0},
+                        "Unstructured_BiC_FullClamp_0to0.99": {"path": "", 
+                                    "accuracy": 0}
+                        },
+                        "resnet50": {"pretrain": {"path": "", 
+                                    "accuracy": 0},
+                        "Unstructured_BiC_FullClamp_0to0.99": {"path": "", 
+                                    "accuracy": 0}
+}    
+},
+"tiny-image-net": {"resnet18": {"pretrain": {"path": "", 
+                                       "accuracy": 0},
+                         "Unstructured_BiC_FullClamp_0to0.99": {"path": "", 
+                                          "accuracy": 0}
+                         },
+            "resnet34": {"pretrain": {"path": "", 
+                                       "accuracy": 0},
+                         "Unstructured_BiC_FullClamp_0to0.99": {"path": "", 
+                                          "accuracy": 0}
+                         },
+            "resnet50": {"pretrain": {"path": "", 
+                                        "accuracy": 0},
+                         "Unstructured_BiC_FullClamp_0to0.99": {"path": "", 
+                                        "accuracy": 0}
+                        }    
+            }
+
+}
