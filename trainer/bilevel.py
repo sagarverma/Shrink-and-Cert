@@ -79,16 +79,15 @@ def train(
             loss = criterion(output, train_targets)
             loss.backward()
 
-            def grad2vec(parameters):
+            def grad2vec(model):
                 grad_vec = []
-                for i, param in enumerate(parameters):
-                    try:
-                        grad_vec.append(param.grad.view(-1).detach())
-                    except:
-                        grad_vec.append(torch.ones(param.view(-1).shape).type_as(param))
+                for name, param in model.named_parameters():
+                    grad_vec.append(param.grad.view(-1).detach())
                 return torch.cat(grad_vec)
+            
+            param_grad_vec = grad2vec(model)
 
-            param_grad_vec = grad2vec(model.parameters())
+            print ("Switched to prune")
 
             switch_to_prune(model)
             mask_optimizer.zero_grad()
@@ -96,7 +95,7 @@ def train(
 
             loss_mask.backward()
 
-            mask_grad_vec = grad2vec(model.parameters())
+            mask_grad_vec = grad2vec(model)
             implicit_gradient = -args.lr2 * mask_grad_vec * param_grad_vec
 
             def append_grad_to_vec(vec, parameters):
@@ -107,14 +106,11 @@ def train(
 
                 pointer = 0
                 for param in parameters:
-                    try:
-                        num_param = param.numel()
+                    num_param = param.numel()
 
-                        param.grad.copy_(param.grad + vec[pointer:pointer + num_param].view_as(param).data)
+                    param.grad.copy_(param.grad + vec[pointer:pointer + num_param].view_as(param).data)
 
-                        pointer += num_param
-                    except:
-                        pass
+                    pointer += num_param
 
             append_grad_to_vec(implicit_gradient, model.parameters())
             mask_optimizer.step()
