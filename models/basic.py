@@ -1,6 +1,10 @@
 import math
 
+import torch
 import torch.nn as nn
+import torch.nn.functional as F
+
+from models.layers import GetSubnetUnstructured
 
 
 class Flatten(nn.Module):
@@ -43,8 +47,7 @@ def lin_4(input_dim=3072, hidden_dim=100, num_classes=10):
     return model
 
 
-def mnist_model(conv_layer, linear_layer, init_type, **kwargs):
-    assert init_type == "kaiming_normal", "only supporting kaiming_normal init"
+def mnist_model(conv_layer, linear_layer, **kwargs):
     model = nn.Sequential(
         conv_layer(1, 16, 4, stride=2, padding=1),
         nn.ReLU(),
@@ -58,8 +61,7 @@ def mnist_model(conv_layer, linear_layer, init_type, **kwargs):
     return model
 
 
-def mnist_model_large(conv_layer, linear_layer, init_type, **kwargs):
-    assert init_type == "kaiming_normal", "only supporting kaiming_normal init"
+def mnist_model_large(conv_layer, linear_layer, **kwargs):
     model = nn.Sequential(
         conv_layer(1, 32, 3, stride=1, padding=1),
         nn.ReLU(),
@@ -79,8 +81,7 @@ def mnist_model_large(conv_layer, linear_layer, init_type, **kwargs):
     return model
 
 
-def cifar_model(conv_layer, linear_layer, init_type, **kwargs):
-    assert init_type == "kaiming_normal", "only supporting kaiming_normal init"
+def cifar_model(conv_layer, linear_layer, **kwargs):
     model = nn.Sequential(
         conv_layer(3, 16, 4, stride=2, padding=1),
         nn.ReLU(),
@@ -98,31 +99,65 @@ def cifar_model(conv_layer, linear_layer, init_type, **kwargs):
             m.bias.data.zero_()
     return model
 
+class CIFAR_Model_Large(nn.Module):
+    def __init__(self, conv_layer, linear_layer, num_classes=10, k=1.0, unstructured=True):
+        super(CIFAR_Model_Large, self).__init__()
+        self.k = k 
+        self.unstructured_pruning = unstructured
 
-def cifar_model_large(conv_layer, linear_layer, init_type, **kwargs):
-    assert init_type == "kaiming_normal", "only supporting kaiming_normal init"
-    model = nn.Sequential(
-        conv_layer(3, 32, 3, stride=1, padding=1),
-        nn.ReLU(),
-        conv_layer(32, 32, 4, stride=2, padding=1),
-        nn.ReLU(),
-        conv_layer(32, 64, 3, stride=1, padding=1),
-        nn.ReLU(),
-        conv_layer(64, 64, 4, stride=2, padding=1),
-        nn.ReLU(),
-        Flatten(),
-        linear_layer(64 * 8 * 8, 512),
-        nn.ReLU(),
-        linear_layer(512, 512),
-        nn.ReLU(),
-        linear_layer(512, 10),
-    )
-    for m in model.modules():
-        if isinstance(m, nn.Conv2d):
-            n = m.kernel_size[0] * m.kernel_size[1] * m.out_channels
-            m.weight.data.normal_(0, math.sqrt(2.0 / n))
-            m.bias.data.zero_()
-    return model
+        self.conv1 = conv_layer(3, 32, 3, stride=1, padding=1)
+        self.bn1 = nn.BatchNorm2d(32)
+        self.conv2 = conv_layer(32, 32, 4, stride=2, padding=1)
+        self.bn2 = nn.BatchNorm2d(32)
+        self.conv3 = conv_layer(32, 64, 3, stride=1, padding=1)
+        self.bn3 = nn.BatchNorm2d(64)
+        self.conv4 = conv_layer(64, 64, 4, stride=2, padding=1)
+        self.bn4 = nn.BatchNorm2d(64)
+        self.linear1 = linear_layer(64 * 8 * 8, 512)
+        self.bn5 = nn.BatchNorm1d(512)
+        self.linear2 =  linear_layer(512, 512)
+        self.bn6 = nn.BatchNorm1d(512)
+        self.linear3 = linear_layer(512, num_classes)
+
+        # for m in self.modules():
+        #     if isinstance(m, nn.Conv2d):
+        #         n = m.kernel_size[0] * m.kernel_size[1] * m.out_channels
+        #         m.weight.data.normal_(0, math.sqrt(2.0 / n))
+        #         m.bias.data.zero_()
+
+    def forward(self, x):
+        if self.unstructured_pruning:
+            score_list = []
+            for (name, vec) in self.named_modules():
+                if hasattr(vec, "popup_scores"):
+                    attr = getattr(vec, "popup_scores")
+                    if attr is not None:
+                        score_list.append(attr.view(-1))
+            scores = torch.cat(score_list)
+            adj = GetSubnetUnstructured.apply(scores.abs(), self.k)
+
+            pointer = 0
+            for (name, vec) in self.named_modules():
+                if not isinstance(vec, (nn.BatchNorm2d, nn.BatchNorm1d)):
+                    if hasattr(vec, "weight"):
+                        attr = getattr(vec, "weight")
+                        if attr is not None:
+                            numel = attr.numel()
+                            vec.w = attr * adj[pointer: pointer + numel].view_as(attr)
+                            pointer += numel
+
+        out = F.relu(self.bn1(self.conv1(x)))
+        out = F.relu(self.bn2(self.conv2(out)))
+        out = F.relu(self.bn3(self.conv3(out)))
+        out = F.relu(self.bn4(self.conv4(out)))
+        out = out.view(out.size(0), -1)
+        out = F.relu(self.bn5(self.linear1(out)))
+        out = F.relu(self.bn6(self.linear2(out)))
+        out = self.linear3(out)
+        return out
+
+def cifar_model_large(conv_layer, linear_layer, **kwargs):
+    return CIFAR_Model_Large(conv_layer, linear_layer, **kwargs)
 
 
 class DenseSequential(nn.Sequential):
@@ -149,7 +184,7 @@ class Dense(nn.Module):
         return out
 
 
-def cifar_model_resnet(conv_layer, linear_layer, init_type, N=5, factor=1, **kwargs):
+def cifar_model_resnet(conv_layer, linear_layer, N=5, factor=1, **kwargs):
     def block(in_filters, out_filters, k, downsample):
         if not downsample:
             k_first = 3
@@ -209,8 +244,7 @@ def cifar_model_resnet(conv_layer, linear_layer, init_type, N=5, factor=1, **kwa
     return model
 
 
-def vgg4_without_maxpool(conv_layer, linear_layer, init_type, **kwargs):
-    assert init_type == "kaiming_normal", "only supporting kaiming_normal init"
+def vgg4_without_maxpool(conv_layer, linear_layer, **kwargs):
     model = nn.Sequential(
         conv_layer(3, 64, 3, stride=1, padding=1),
         nn.ReLU(),

@@ -138,7 +138,7 @@ class ResNet(nn.Module):
                         attr = getattr(vec, "weight")
                         if attr is not None:
                             numel = attr.numel()
-                            vec.w = attr * adj[pointer: pointer + numel].view_as(attr)
+                            vec.weight = attr * adj[pointer: pointer + numel].view_as(attr)
                             pointer += numel
 
         out = F.relu(self.bn1(self.conv1(x)))

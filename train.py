@@ -175,8 +175,8 @@ def main():
 
     # Evaluate
     if args.evaluate or args.exp_mode in ["finetune"]:
-        p1, _ = val(model, device, test_loader, criterion, args, None)
-        logger.info(f"Validation accuracy {args.val_method} for source-net: {p1}")
+        p1, radii = val(model, device, test_loader, criterion, args, None)
+        logger.info(f"Validation accuracy {args.val_method} for source-net: {p1} rad {radii}")
         if args.evaluate:
             return
 
