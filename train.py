@@ -6,6 +6,7 @@ import logging
 import os
 import time
 from pathlib import Path
+import json
 
 import numpy as np
 import torch
@@ -29,6 +30,7 @@ from utils.model import (
     current_model_pruned_fraction,
 )
 from utils.schedules import get_lr_policy, get_optimizer
+from utils.lipschitz import get_lipschitz
 
 
 class EarlyStopper:
@@ -84,6 +86,8 @@ def main():
         logging.FileHandler(os.path.join(result_sub_dir, "setup.log"), "a")
     )
     logger.info(args)
+
+    lip_fout = open(os.path.join(result_sub_dir, "lip.json"), 'w')
 
     setup_seed(args.seed)
     device = "cuda:0" if torch.cuda.is_available() else "cpu"
@@ -207,6 +211,10 @@ def main():
             )
             logger.info(f"Epoch {epoch}, mean provable Radii  {radii}")
         prec1, _ = val(model, device, test_loader, criterion, args, epoch)
+        model_state_dict = model.state_dict()
+        epoch_lip = get_lipschitz(model_state_dict)
+        lip_fout.write(json.dumps(epoch_lip))
+        lip_fout.write("\n")
 
         # remember best prec@1 and save checkpoint
         if args.trainer == "bilevel":
@@ -217,7 +225,7 @@ def main():
             {
                 "epoch": epoch + 1,
                 "arch": args.arch,
-                "state_dict": model.state_dict(),
+                "state_dict": model_state_dict,
                 "best_prec1": best_prec1,
                 "optimizer": optimizer.state_dict(),
             },
@@ -253,6 +261,7 @@ def main():
         result_dir=os.path.join(result_sub_dir, "checkpoint"),
         save_dense=args.save_dense,
     )
+    lip_fout.close()
 
     # clone_results_to_latest_subdir(
     #     result_sub_dir, os.path.join(result_main_dir, "latest_exp")
